@@ -1,0 +1,25 @@
+[project]
+name = "pet"
+version = "0.1.0"
+description = "Temporary Email service with TTL-based message expiration"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.136.3",
+    "pydantic-settings>=2.14.1",
+    "redis>=7.4.0",
+    "sqlalchemy[asyncio]>=2.0.50",
+    "uuid-utils>=0.16.0",
+    "uvicorn[standard]>=0.48.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pre-commit>=4.6.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.14",
+]
