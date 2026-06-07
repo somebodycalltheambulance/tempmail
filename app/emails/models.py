@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.messages.models import Message
+    
 from datetime import datetime
 
 from sqlalchemy import String, Boolean, DateTime, func

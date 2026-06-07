@@ -34,6 +34,8 @@ async_session_maker = async_sessionmaker(
 )
 
 #Dependency для FastAPI - выдает сессию на запрос, потом закрывает
+#контекстный менеджер сам закроет сессию после запроса
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
+        

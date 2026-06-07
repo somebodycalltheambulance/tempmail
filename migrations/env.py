@@ -15,8 +15,7 @@ from app.database import Base, DATABASE_URL
 
 #Импортирую модели для регистрации в Base.metadata
 #Без них alembic не увидит таблицы и сгенерит пустую миграцию
-from app.emails.models import Mailbox # noqa: F401
-from app.messages.models import Message # noqa: F401
+import app.models # noga: F401, E402
 
 
 #Подставлю строку подключения из кфг
