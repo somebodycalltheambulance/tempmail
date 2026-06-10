@@ -50,3 +50,16 @@ async def create_mailbox(session: AsyncSession) -> tuple[Mailbox, str]:
     
     # 6. вернуть обьект + оригинальный токен
     return mailbox, raw_token
+
+async def extend_mailbox(session: AsyncSession, mailbox: Mailbox) -> Mailbox:
+    if mailbox.is_extended:
+        raise ValueError("Mailbox already extended")
+    
+    mailbox.expires_at = mailbox.expires_at + timedelta(minutes=settings.mailbox_ttl_minutes)
+    mailbox.is_extended = True
+    await session.commit()
+    await session.refresh(mailbox)
+    return mailbox
+    
+    
+    

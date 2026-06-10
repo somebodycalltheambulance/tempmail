@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.emails import service
-from app.emails.schemas import MailboxResponse
+from app.emails.dependencies import get_authorized_mailbox
+from app.emails.schemas import MailboxResponse, MailboxExtendResponse
+from app.emails.models import Mailbox
 
 
 # Роутер для эндпойнтов, связанных с ящиками
@@ -31,3 +33,14 @@ async def create_mailbox(
     )
     
     
+@router.post("/{mailbox_id}/extend", response_model=MailboxExtendResponse)
+async def renew_mailbox(
+    db: AsyncSession = Depends(get_db),
+    mailbox: Mailbox = Depends(get_authorized_mailbox),
+) -> MailboxExtendResponse:
+    try:
+        mailbox = await service.extend_mailbox(db, mailbox)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Mailbox already extended!")
+    return MailboxExtendResponse.model_validate(mailbox)
