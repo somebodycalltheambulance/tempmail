@@ -1,14 +1,18 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from redis.asyncio import Redis
+
 from app.database import get_db
 from app.emails.models import Mailbox
 from app.emails.service import _hash_token
+from app.redis_client import get_redis
+from app.config import settings
 
 
 
@@ -50,3 +54,23 @@ async def get_authorized_mailbox(
         
     # 5. вернуть ящик
     return mailbox
+
+
+async def rate_limit_create(
+    request: Request,
+    redis: Redis = Depends(get_redis),
+) -> None:
+    ip = request.client.host
+    key = f"ratelimit:create:{ip}"
+    current = await redis.incr(key)
+    
+    if current == 1:
+        await redis.expire(key, 60)
+        
+    if current > settings.rate_limit_per_minute:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many requests, try again later",
+        )
+
+    

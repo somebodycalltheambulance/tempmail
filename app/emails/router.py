@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.emails import service
-from app.emails.dependencies import get_authorized_mailbox
+from app.emails.dependencies import get_authorized_mailbox, rate_limit_create
 from app.emails.schemas import MailboxResponse, MailboxExtendResponse
 from app.emails.models import Mailbox
 
@@ -15,7 +15,8 @@ router = APIRouter(prefix="/mailboxes", tags=["mailboxes"])
 @router.post(
     "", # путь относительно prefix - POST /mailboxes
     response_model=MailboxResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_create)],
 )
 async def create_mailbox(
     db: AsyncSession = Depends(get_db),
@@ -44,3 +45,4 @@ async def renew_mailbox(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Mailbox already extended!")
     return MailboxExtendResponse.model_validate(mailbox)
+
