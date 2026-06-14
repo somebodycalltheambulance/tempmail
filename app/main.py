@@ -1,12 +1,22 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.emails.router import router as email_router
 from app.messages.router import router as messages_router
 from app.messages.router import webhook_router 
+from app.cleanup import cleanup_loop
 import app.models # noqa: F401
 
 
-app = FastAPI(title="Tempmail Service")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(cleanup_loop())
+    yield
+    task.cancel()
+    
+app = FastAPI(title="Tempmail Service", lifespan=lifespan)
 
 # Подключение роутера ящиков.
 app.include_router(email_router)
