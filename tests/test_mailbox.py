@@ -22,7 +22,7 @@ async def test_create_mailbox(client):
 async def test_list_messages_requires_token(client):
     response = await client.post("/mailboxes")
     
-    mailbox_id = response.json()["id"]
+    mailbox_id = response.json()["id"]  
     #запросить письма без токена - 401
     response = await client.get(f"/mailboxes/{mailbox_id}/messages")
     assert response.status_code == 401
@@ -46,3 +46,30 @@ async def test_list_messages_with_token(client):
     response = await client.get(f"/mailboxes/{mailbox_id}/messages", headers=headers)
     assert response.status_code == 200
     assert response.json()["count"] == 0
+    
+
+async def test_webhook_receives_email(client):
+    response = await client.post("/mailboxes")
+    data = response.json()
+    address = data["address"]
+    mailbox_id = data["id"]
+    token = data["token"]
+    
+    payload = {
+    "items": [
+        {
+            "From": {"Name": "Sender", "Address": "[email protected]"},
+            "To": [{"Name": None, "Address": address}],   # ← address ящика
+            "Subject": "Test subject",
+            "RawTextBody": "Test body",
+            "RawHtmlBody": None,
+        }
+    ]
+}
+    response = await client.post("/webhooks/brevo/inbound", json=payload)
+    assert response.status_code == 200
+    
+    headers = {"Authorization": f"Bearer {token}"}
+    response = await client.get(f"/mailboxes/{mailbox_id}/messages", headers=headers)
+    assert response.status_code == 200
+    assert response.json()["count"] == 1

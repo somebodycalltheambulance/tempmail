@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+from app.redis_client import redis_client
 
 
 TEST_DATABASE_URL = (
@@ -13,6 +14,11 @@ TEST_DATABASE_URL = (
     f"@{settings.postgres_host}:{settings.postgres_port}"
     f"/tempmail_test"
 )
+
+@pytest_asyncio.fixture(autouse=True)
+async def clear_redis():
+    await redis_client.flushdb()
+    yield
 
 
 # движок — ОДИН на всю сессию, в session-loop
