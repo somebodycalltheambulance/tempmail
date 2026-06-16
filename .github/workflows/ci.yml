@@ -31,12 +31,13 @@ jobs:
                     --health-retries 5
 
         env:
-            POSTGRES_HOST: localhost
+            POSTGRES_HOST: 127.0.0.1
             POSTGRES_PORT: 5432
             POSTGRES_USER: tempmail
             POSTGRES_PASSWORD: tempmail
             POSTGRES_DB: tempmail_test
-            REDIS_HOST: 6379
+            REDIS_HOST: 127.0.0.1
+            REDIS_PORT: 6379
             MAIL_DOMAIN: temp.local
             BREVO_WEBHOOK_SECRET: dummy
 
