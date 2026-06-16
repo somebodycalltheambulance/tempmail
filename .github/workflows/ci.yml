@@ -1,0 +1,55 @@
+name:  CI
+
+on:  [push, pull_request]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: tempmail
+                    POSTGRES_PASSWORD: tempmail
+                    POSTGRES_DB: tempmail_test
+                ports:
+                    - 5432:5432
+                options:
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+            redis:
+                image: redis:7
+                ports:
+                    - 6379:6379
+                options:
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        env:
+            POSTGRES_HOST: localhost
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: tempmail
+            POSTGRES_PASSWORD: tempmail
+            POSTGRES_DB: tempmail_test
+            REDIS_HOST: 6379
+            MAIL_DOMAIN: temp.local
+            BREVO_WEBHOOK_SECRET: dummy
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+            - name: Install dependencies
+              run: uv sync
+            - name: Lint
+              run: uv run ruff check .
+            - name: Run tests
+              run: uv run pytest -v
+
+
+
